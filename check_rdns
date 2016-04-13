@@ -1,0 +1,77 @@
+#!/usr/bin/perl
+# check_rdns - Monitor your RDNS/PTR records
+# Copyright (C) 2016 Josef 'veloc1ty' Stautner (hello@veloc1ty.de)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use Getopt::Long;
+
+our $ARG_ADDRESS = '';
+our $ARG_EXPECTED_RESULT = '';
+
+sub exitCritical {
+    printf("CRITICAL - %s\n", shift);
+    exit(2);
+}
+
+sub exitUnknown {
+    printf("UNKNOWN - %s\n", shift);
+    exit(3);
+}
+
+sub parseArguments {
+    GetOptions (
+        'address=s' => \$ARG_ADDRESS,
+        'expected=s' => \$ARG_EXPECTED_RESULT
+    );
+
+    if ( length($ARG_ADDRESS) == 0 ) {
+        exitUnknown('Argument --address is missing');
+    }
+
+    if ( length($ARG_EXPECTED_RESULT) == 0 ) {
+        exitUnknown('Argument --expected is missing');
+    }
+}
+
+sub getDigOutput {
+    my $output = `dig +short -x $ARG_ADDRESS`;
+    chomp($output);
+
+    if ( length($output) == 0 ) {
+        exitCritical('No PTR record found');
+    }
+
+    # Remove trailing point from result
+    chop($output);
+
+    return $output;
+}
+
+sub main {
+    parseArguments();
+
+    my $output = getDigOutput();
+
+    if ( $ARG_EXPECTED_RESULT eq $output ) {
+        printf("OK - %s maps back to %s\n",
+            $ARG_ADDRESS, $ARG_EXPECTED_RESULT);
+    }
+    else {
+        exitCritical(sprintf('%s doesn\'t map back to %s', $ARG_ADDRESS,
+            $ARG_EXPECTED_RESULT));
+    }
+}
+
+main();
