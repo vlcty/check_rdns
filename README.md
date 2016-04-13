@@ -11,7 +11,7 @@ The application takes two arguments:
 * --address and
 * --expected
 
-The arguments are self explaining. A Sample usage:
+The arguments are self explaining. A sample usage:
 
 Let's assume that 31.220.45.3 should map back to "mineralwasser.veloc1ty.de". The script would then be called with
 
